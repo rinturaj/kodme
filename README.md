@@ -15,7 +15,7 @@ A simple, beginner-friendly programming language for learning programming concep
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/kodme.git
+git clone https://github.com/rinturaj/kodme.git
 cd kodme
 
 # Install dependencies

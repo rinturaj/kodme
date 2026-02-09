@@ -15,13 +15,15 @@ if (args.length > 0) {
         process.exit(1);
     }
 
-    try {
-        const source = fs.readFileSync(filePath, "utf-8");
-        execute(source);
-    } catch (error) {
-        console.error("Execution Error:", error);
-        process.exit(1);
-    }
+    (async () => {
+        try {
+            const source = fs.readFileSync(filePath, "utf-8");
+            await execute(source);
+        } catch (error) {
+            console.error("Execution Error:", error);
+            process.exit(1);
+        }
+    })();
 } else {
     // REPL Mode
     startRepl();
@@ -39,7 +41,7 @@ function startRepl() {
 
     rl.prompt();
 
-    rl.on("line", (line) => {
+    rl.on("line", async (line) => {
         const input = line.trim();
         if (input === "exit") {
             rl.close();
@@ -53,7 +55,7 @@ function startRepl() {
                 // execute() helper re-creates interpreter.
                 // TODO: Update core to support persistent session.
                 // For now, stateless execution per line.
-                execute(input);
+                await execute(input);
             } catch (error: any) {
                 console.error("Error:", error.message);
             }

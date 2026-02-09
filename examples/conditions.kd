@@ -1,6 +1,9 @@
 # Conditional Logic
 
-score = 85
+name = ask "What is your name?"
+show "Hi " + name
+
+score = 10
 
 if score >= 90
     show "Grade: A"

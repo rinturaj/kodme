@@ -7,10 +7,10 @@ import {
     IfStmt,
     RepeatStmt,
     ShowStmt,
-    AskStmt,
     VarStmt,
     AssignStmt,
     Expr,
+    AskExpr,
     BinaryExpr,
     GroupingExpr,
     LiteralExpr,
@@ -72,7 +72,6 @@ export class Parser {
 
     private statement(): Stmt {
         if (this.match(TokenType.Show)) return this.showStatement();
-        if (this.match(TokenType.Ask)) return this.askStatement();
         if (this.match(TokenType.If)) return this.ifStatement();
         if (this.match(TokenType.Repeat)) return this.repeatStatement();
         if (this.match(TokenType.Indentation)) return this.block();
@@ -86,13 +85,6 @@ export class Parser {
         return new ShowStmt(value);
     }
 
-    private askStatement(): Stmt {
-        // ask "Prompt" variable
-        const promptToken = this.consume(TokenType.String, "Expect prompt string after 'ask'.");
-        const variable = this.consume(TokenType.Identifier, "Expect variable name after prompt string.");
-        this.consume(TokenType.Newline, "Expect newline after ask statement.");
-        return new AskStmt(promptToken.value, variable); // value is the literal string
-    }
 
     private ifStatement(): Stmt {
         const condition = this.expression();
@@ -265,6 +257,11 @@ export class Parser {
 
         if (this.match(TokenType.Identifier)) {
             return new VariableExpr(this.previous());
+        }
+
+        if (this.match(TokenType.Ask)) {
+            const promptToken = this.consume(TokenType.String, "Expect prompt string after 'ask'.");
+            return new AskExpr(promptToken.value);
         }
 
         if (this.match(TokenType.Unknown)) { // LeftParen?

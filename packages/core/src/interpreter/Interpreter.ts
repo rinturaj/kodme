@@ -7,7 +7,7 @@ import {
     IfStmt,
     RepeatStmt,
     ShowStmt,
-    AskStmt,
+    AskExpr,
     VarStmt,
     AssignStmt,
     BinaryExpr,
@@ -17,8 +17,7 @@ import {
     UnaryExpr,
     VariableExpr,
 } from "../ast/ast";
-import { Environment, RuntimeError } from "../runtime/Environment";
-import { Token } from "../token/token";
+import { Environment } from "../runtime/Environment";
 import { TokenType } from "../token/tokenType";
 
 // Basic global mock for prompt/alert interactions if not in browser
@@ -27,117 +26,129 @@ import { TokenType } from "../token/tokenType";
 const runtimeOutput = (msg: string) => console.log(msg);
 // const runtimeInput = (msg: string) => prompt(msg); // Will fail in Node without polyfill
 
-export class Interpreter implements Visitor<any> {
+import * as readline from 'readline';
+
+declare var window: any;
+
+export class Interpreter implements Visitor<Promise<any>> {
     private environment = new Environment();
 
     constructor () {
         // Global definitions can go here
     }
 
-    interpret(statements: Stmt[]): void {
+    async interpret(statements: Stmt[]): Promise<void> {
         try {
             for (const statement of statements) {
-                this.execute(statement);
+                await this.execute(statement);
             }
         } catch (error) {
             console.error(error);
         }
     }
 
-    private execute(stmt: Stmt): void {
-        stmt.accept(this);
+    private async execute(stmt: Stmt): Promise<void> {
+        await stmt.accept(this);
     }
 
-    private evaluate(expr: Expr): any {
-        return expr.accept(this);
+    private async evaluate(expr: Expr): Promise<any> {
+        return await expr.accept(this);
     }
 
     // Statements
 
-    visitBlockStmt(stmt: BlockStmt): any {
-        this.executeBlock(stmt.statements, new Environment(this.environment));
+    async visitBlockStmt(stmt: BlockStmt): Promise<any> {
+        await this.executeBlock(stmt.statements, new Environment(this.environment));
         return null;
     }
 
-    executeBlock(statements: Stmt[], environment: Environment): void {
+    async executeBlock(statements: Stmt[], environment: Environment): Promise<void> {
         const previous = this.environment;
         try {
             this.environment = environment;
             for (const statement of statements) {
-                this.execute(statement);
+                await this.execute(statement);
             }
         } finally {
             this.environment = previous;
         }
     }
 
-    visitExpressionStmt(stmt: ExpressionStmt): any {
-        this.evaluate(stmt.expression);
+    async visitExpressionStmt(stmt: ExpressionStmt): Promise<any> {
+        await this.evaluate(stmt.expression);
         return null;
     }
 
-    visitIfStmt(stmt: IfStmt): any {
-        if (this.isTruthy(this.evaluate(stmt.condition))) {
-            this.execute(stmt.thenBranch);
+    async visitIfStmt(stmt: IfStmt): Promise<any> {
+        if (this.isTruthy(await this.evaluate(stmt.condition))) {
+            await this.execute(stmt.thenBranch);
         } else if (stmt.elseBranch) {
-            this.execute(stmt.elseBranch);
+            await this.execute(stmt.elseBranch);
         }
         return null;
     }
 
-    visitRepeatStmt(stmt: RepeatStmt): any {
+    async visitRepeatStmt(stmt: RepeatStmt): Promise<any> {
         // Two modes: count or condition
         if (stmt.count) {
-            const count = this.evaluate(stmt.count);
+            const count = await this.evaluate(stmt.count);
             if (typeof count !== 'number') {
                 // For robustness, maybe cast or throw. Kodme is strict-ish.
                 // Assuming number for now.
             }
             for (let i = 0; i < count; i++) {
-                this.execute(stmt.body);
+                await this.execute(stmt.body);
             }
         } else if (stmt.condition) {
-            while (!this.isTruthy(this.evaluate(stmt.condition))) {
-                this.execute(stmt.body);
+            while (!this.isTruthy(await this.evaluate(stmt.condition))) {
+                await this.execute(stmt.body);
             }
         }
         return null;
     }
 
-    visitShowStmt(stmt: ShowStmt): any {
-        const value = this.evaluate(stmt.expression);
+    async visitShowStmt(stmt: ShowStmt): Promise<any> {
+        const value = await this.evaluate(stmt.expression);
         runtimeOutput(this.stringify(value));
         return null;
     }
 
-    visitAskStmt(stmt: AskStmt): any {
-        // In Node.js environment, `prompt` is not available by default.
-        // We should probably rely on a provided callback or throw if not available.
-        // For this MVP, we might mock it or assume simple values for testing.
-        // console.log(`Prompt: ${stmt.prompt}`);
-        // this.environment.define(stmt.variable.lexeme, "MockAnswer"); 
+    async visitAskExpr(stmt: AskExpr): Promise<any> {
+        let answer = "";
 
-        // Better: throw "Not implemented" for now or assume runtime injection.
-        // Let's define a mock "answer" for now.
+        // Check if running in browser
+        if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+            const result = window.prompt(stmt.prompt);
+            answer = result === null ? "" : result;
+        } else {
+            // Node.js environment - use readline
+            answer = await new Promise<string>((resolve) => {
+                const rl = readline.createInterface({
+                    input: process.stdin,
+                    output: process.stdout
+                });
 
-        // In a real implementation we'd probably use `readline` or similar in Node,
-        // or `window.prompt` in browser.
+                rl.question(stmt.prompt + " ", (input) => {
+                    rl.close();
+                    resolve(input);
+                });
+            });
+        }
 
-        this.environment.define(stmt.variable.value, "UserAnswer");
-        return null;
+        return answer;
     }
 
-    visitVarStmt(stmt: VarStmt): any {
+    async visitVarStmt(stmt: VarStmt): Promise<any> {
         let value = null;
         if (stmt.initializer) {
-            value = this.evaluate(stmt.initializer);
+            value = await this.evaluate(stmt.initializer);
         }
         this.environment.define(stmt.name.value, value);
         return null;
     }
 
-    visitAssignStmt(stmt: AssignStmt): any {
-        const value = this.evaluate(stmt.value);
+    async visitAssignStmt(stmt: AssignStmt): Promise<any> {
+        const value = await this.evaluate(stmt.value);
         // Assignments in Kodme define variables implicitly if they don't exist? 
         // Or strictly update existing ones?
         // "Undefined variable throws error" rule says strictly update.
@@ -163,9 +174,9 @@ export class Interpreter implements Visitor<any> {
 
     // Expressions
 
-    visitBinaryExpr(expr: BinaryExpr): any {
-        const left = this.evaluate(expr.left);
-        const right = this.evaluate(expr.right);
+    async visitBinaryExpr(expr: BinaryExpr): Promise<any> {
+        const left = await this.evaluate(expr.left);
+        const right = await this.evaluate(expr.right);
 
         switch (expr.operator.type) {
             case TokenType.Minus:
@@ -195,8 +206,8 @@ export class Interpreter implements Visitor<any> {
         return null;
     }
 
-    visitLogicalExpr(expr: LogicalExpr): any {
-        const left = this.evaluate(expr.left);
+    async visitLogicalExpr(expr: LogicalExpr): Promise<any> {
+        const left = await this.evaluate(expr.left);
 
         if (expr.operator.type === TokenType.Or) {
             if (this.isTruthy(left)) return left;
@@ -204,19 +215,19 @@ export class Interpreter implements Visitor<any> {
             if (!this.isTruthy(left)) return left;
         }
 
-        return this.evaluate(expr.right);
+        return await this.evaluate(expr.right);
     }
 
-    visitGroupingExpr(expr: GroupingExpr): any {
-        return this.evaluate(expr.expression);
+    async visitGroupingExpr(expr: GroupingExpr): Promise<any> {
+        return await this.evaluate(expr.expression);
     }
 
-    visitLiteralExpr(expr: LiteralExpr): any {
+    async visitLiteralExpr(expr: LiteralExpr): Promise<any> {
         return expr.value;
     }
 
-    visitUnaryExpr(expr: UnaryExpr): any {
-        const right = this.evaluate(expr.right);
+    async visitUnaryExpr(expr: UnaryExpr): Promise<any> {
+        const right = await this.evaluate(expr.right);
 
         switch (expr.operator.type) {
             // case TokenType.Bang: // Not in grammar yet? `not` keyword used.
@@ -227,7 +238,7 @@ export class Interpreter implements Visitor<any> {
         return null;
     }
 
-    visitVariableExpr(expr: VariableExpr): any {
+    async visitVariableExpr(expr: VariableExpr): Promise<any> {
         // Note: VariableExpr in AST has `name: Token`. 
         // Does it use `lexeme` or `value`? 
         // `Interpreter` should rely on what `Lexer` produces.

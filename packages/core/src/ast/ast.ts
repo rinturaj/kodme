@@ -6,7 +6,6 @@ export interface Visitor<R> {
     visitIfStmt(stmt: IfStmt): R;
     visitRepeatStmt(stmt: RepeatStmt): R;
     visitShowStmt(stmt: ShowStmt): R;
-    visitAskStmt(stmt: AskStmt): R;
     visitVarStmt(stmt: VarStmt): R;
     visitAssignStmt(stmt: AssignStmt): R;
 
@@ -16,7 +15,17 @@ export interface Visitor<R> {
     visitLogicalExpr(expr: LogicalExpr): R;
     visitUnaryExpr(expr: UnaryExpr): R;
     visitVariableExpr(expr: VariableExpr): R;
+    visitAskExpr(expr: AskExpr): R;
 }
+
+// ... Stmt classes ...
+
+// Remove AskStmt
+
+// ... Expr classes ...
+
+
+
 
 export abstract class Stmt {
     abstract accept<R>(visitor: Visitor<R>): R;
@@ -77,14 +86,7 @@ export class ShowStmt extends Stmt {
     }
 }
 
-export class AskStmt extends Stmt {
-    constructor (public prompt: string, public variable: Token) {
-        super();
-    }
-    accept<R>(visitor: Visitor<R>): R {
-        return visitor.visitAskStmt(this);
-    }
-}
+
 
 export class VarStmt extends Stmt {
     constructor (public name: Token, public initializer: Expr) {
@@ -165,5 +167,14 @@ export class VariableExpr extends Expr {
     }
     accept<R>(visitor: Visitor<R>): R {
         return visitor.visitVariableExpr(this);
+    }
+}
+
+export class AskExpr extends Expr {
+    constructor (public prompt: string) {
+        super();
+    }
+    accept<R>(visitor: Visitor<R>): R {
+        return visitor.visitAskExpr(this);
     }
 }
