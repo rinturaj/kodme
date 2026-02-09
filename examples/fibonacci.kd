@@ -1,0 +1,13 @@
+# Fibonacci Sequence in Kodme
+
+a = 0
+b = 1
+count = 0
+
+show "Generating Fibonacci sequence..."
+
+repeat 10
+    show a
+    temp = a + b
+    a = b
+    b = temp

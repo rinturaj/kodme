@@ -1,0 +1,28 @@
+{
+  "name": "@kodme/cli",
+  "version": "0.0.1",
+  "description": "Command line interface for Kodme language",
+  "main": "dist/index.js",
+  "bin": {
+    "kodme": "./bin/kodme"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/cli.ts"
+  },
+  "keywords": [
+    "kodme",
+    "cli",
+    "compiler"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "@kodme/core": "workspace:*",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24"
+  }
+}

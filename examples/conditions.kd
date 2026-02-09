@@ -1,0 +1,13 @@
+# Conditional Logic
+
+score = 85
+
+if score >= 90
+    show "Grade: A"
+else
+    if score >= 80
+        show "Grade: B"
+    else
+        show "Grade: C"
+
+show "Done"
