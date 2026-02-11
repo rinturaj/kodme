@@ -18,12 +18,6 @@ export interface Visitor<R> {
     visitAskExpr(expr: AskExpr): R;
 }
 
-// ... Stmt classes ...
-
-// Remove AskStmt
-
-// ... Expr classes ...
-
 
 
 

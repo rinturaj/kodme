@@ -256,7 +256,6 @@ export class Interpreter implements Visitor<Promise<any>> {
         return this.environment.get(expr.name);
     }
 
-    // Helpers
 
     private isTruthy(object: any): boolean {
         if (object === null) return false;
