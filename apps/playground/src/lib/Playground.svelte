@@ -19,6 +19,8 @@
     let askResolve: ((value: string) => void) | null = null;
     let askValue = "";
 
+    let isOutputExpanded = false;
+
     async function scrollConsole() {
         await tick();
         const outEl = document.getElementById("console-output");
@@ -38,6 +40,7 @@
         output = []; // Clear previous output
         isRunning = true;
         isSuccess = false;
+        isOutputExpanded = true; // Expand output view
 
         const interpreter = new Interpreter({
             print: (msg: string) => {
@@ -106,10 +109,14 @@
     </header>
 
     <main>
-        <div class="column editor-col">
+        <div class="column editor-col" class:expanded={isOutputExpanded}>
             <div class="card">
                 <div class="card-header">
-                    <span>✏️ Code</span>
+                    <span
+                        on:click={() => (isOutputExpanded = false)}
+                        style="cursor: pointer;"
+                        title="Click to collapse output">✏️ Code</span
+                    >
                     <button
                         class="run-btn"
                         on:click={runCode}
@@ -122,7 +129,10 @@
                         {/if}
                     </button>
                 </div>
-                <div class="editor-wrapper">
+                <div
+                    class="editor-wrapper"
+                    on:click={() => (isOutputExpanded = false)}
+                >
                     <Editor
                         bind:this={editorComponent}
                         bind:code={sourceCode}
@@ -156,7 +166,10 @@
                         </div>
                     {/if}
                     {#each output as line}
-                        <div class="log-line">
+                        <div
+                            class="log-line"
+                            class:error={line.includes("Error")}
+                        >
                             <span class="prompt-char">➜</span>
                             {line}
                         </div>
@@ -300,6 +313,10 @@
         display: grid;
         grid-template-rows: 2fr 1fr; /* more space for code, less for output */
         gap: 1.5rem;
+        transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .editor-col.expanded {
+        grid-template-rows: 1fr 1fr; /* Equal split when running to see more output */
     }
 
     .card {
@@ -392,6 +409,26 @@
         display: flex;
         gap: 0.5rem;
         color: var(--text-color);
+        animation: logPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        transform-origin: left center;
+        opacity: 0; /* Starts invisible for animation */
+    }
+    .log-line.error {
+        color: #ef4444; /* Red color for errors */
+        background: #fef2f2;
+        border-left: 3px solid #ef4444;
+        padding-left: 0.5rem;
+    }
+
+    @keyframes logPop {
+        from {
+            transform: scale(0.9) translateX(-10px);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1) translateX(0);
+            opacity: 1;
+        }
     }
 
     .prompt-char {
