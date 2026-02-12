@@ -26,15 +26,51 @@ import { TokenType } from "../token/tokenType";
 const runtimeOutput = (msg: string) => console.log(msg);
 // const runtimeInput = (msg: string) => prompt(msg); // Will fail in Node without polyfill
 
-import * as readline from 'readline';
+
 
 declare var window: any;
 
+
+export interface RuntimeConfig {
+    print: (message: string) => void;
+    ask: (prompt: string) => Promise<string>;
+}
+
 export class Interpreter implements Visitor<Promise<any>> {
     private environment = new Environment();
+    private runtime: RuntimeConfig;
 
-    constructor () {
-        // Global definitions can go here
+    constructor (runtime?: RuntimeConfig) {
+        this.runtime = runtime || {
+            print: (msg: string) => console.log(msg),
+            ask: async (prompt: string) => {
+                // Check if running in browser
+                if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+                    const result = window.prompt(prompt);
+                    return result === null ? "" : result;
+                } else {
+                    // Node.js environment - use readline
+                    try {
+                        const readline = await import('readline');
+                        return await new Promise<string>((resolve) => {
+                            const rl = readline.createInterface({
+                                input: process.stdin,
+                                output: process.stdout
+                            });
+
+                            rl.question(prompt + " ", (input) => {
+                                rl.close();
+                                resolve(input);
+                            });
+                        });
+                    } catch (e) {
+                        // Fallback or error if readline not available
+                        console.error("Readline not available", e);
+                        return "";
+                    }
+                }
+            }
+        };
     }
 
     async interpret(statements: Stmt[]): Promise<void> {
@@ -109,33 +145,12 @@ export class Interpreter implements Visitor<Promise<any>> {
 
     async visitShowStmt(stmt: ShowStmt): Promise<any> {
         const value = await this.evaluate(stmt.expression);
-        runtimeOutput(this.stringify(value));
+        this.runtime.print(this.stringify(value));
         return null;
     }
 
     async visitAskExpr(stmt: AskExpr): Promise<any> {
-        let answer = "";
-
-        // Check if running in browser
-        if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
-            const result = window.prompt(stmt.prompt);
-            answer = result === null ? "" : result;
-        } else {
-            // Node.js environment - use readline
-            answer = await new Promise<string>((resolve) => {
-                const rl = readline.createInterface({
-                    input: process.stdin,
-                    output: process.stdout
-                });
-
-                rl.question(stmt.prompt + " ", (input) => {
-                    rl.close();
-                    resolve(input);
-                });
-            });
-        }
-
-        return answer;
+        return await this.runtime.ask(stmt.prompt);
     }
 
     async visitVarStmt(stmt: VarStmt): Promise<any> {
