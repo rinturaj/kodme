@@ -1,6 +1,7 @@
 export class SoundManager {
     private context: AudioContext | null = null;
     private enabled: boolean = true;
+    private lastTypeTime: number = 0;
 
     constructor () {
         // Initialize AudioContext lazily on first interaction usually, 
@@ -20,21 +21,44 @@ export class SoundManager {
             const ctx = this.getContext();
             if (ctx.state === 'suspended') ctx.resume();
 
+            const now = ctx.currentTime;
+            const delta = now - this.lastTypeTime;
+            this.lastTypeTime = now;
+
+            // Calculate modulation based on speed (delta)
+            // Fast typing (< 0.1s) -> Higher pitch, shorter duration
+            // Slow typing (> 0.3s) -> Base pitch
+
+            // Normalize delta: 0.05 (fast) to 0.3 (slow)
+            const clampedDelta = Math.max(0.05, Math.min(0.3, delta));
+
+            // Factor: 1 (fast) to 0 (slow)
+            const speedFactor = 1 - ((clampedDelta - 0.05) / 0.25);
+
             const oscillator = ctx.createOscillator();
             const gainNode = ctx.createGain();
 
-            oscillator.type = 'sine';
-            // Randomize pitch slightly for mechanical feel
-            oscillator.frequency.setValueAtTime(800 + Math.random() * 200, ctx.currentTime);
+            oscillator.type = 'triangle'; // Clickier than sine
 
-            gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+            // Base pitch 800 (higher cut), + up to 600 for speed
+            const baseFreq = 800 + (speedFactor * 600);
+            oscillator.frequency.setValueAtTime(baseFreq, now);
+            // Quick chirp (freq drop) for mechanical feel
+            oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.03);
+
+            // Volume
+            const volume = 0.1 + (speedFactor * 0.15);
+            gainNode.gain.setValueAtTime(volume, now);
+
+            // Duration: 0.08s (slow) down to 0.03s (fast) - shorter to prevent overlap
+            const duration = 0.08 - (speedFactor * 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
 
             oscillator.start();
-            oscillator.stop(ctx.currentTime + 0.05);
+            oscillator.stop(now + duration);
         } catch (e) {
             console.error("Audio error", e);
         }
@@ -97,6 +121,34 @@ export class SoundManager {
             console.error("Audio error", e);
         }
     }
+    public playTypeError() {
+        if (!this.enabled) return;
+        try {
+            const ctx = this.getContext();
+            if (ctx.state === 'suspended') ctx.resume();
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sawtooth';
+            // Low pitch "thud"
+            osc.frequency.setValueAtTime(100, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(50, ctx.currentTime + 0.1);
+
+            // Short and sharp
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        } catch (e) {
+            console.error("Audio error", e);
+        }
+    }
 }
+
 
 export const soundManager = new SoundManager();

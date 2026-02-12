@@ -10,6 +10,59 @@
 
     let editorView: EditorView;
 
+    import { onMount } from "svelte";
+
+    // Dynamic import for core logic
+    let LexerEngineClass: any;
+
+    onMount(async () => {
+        try {
+            const core = await import("@kodme/core");
+            LexerEngineClass = core.LexerEngine;
+        } catch (e) {
+            console.error("Failed to load core", e);
+        }
+    });
+
+    // Extension to play sound on typing
+    const typingSoundExtension = EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+            // Check for user input or deletion
+            const isUserEvent = update.transactions.some(
+                (tr) =>
+                    tr.isUserEvent("input") ||
+                    tr.isUserEvent("delete") ||
+                    tr.isUserEvent("keyboard"),
+            );
+
+            if (isUserEvent) {
+                let hasError = false;
+
+                // Validate current line if Lexer is available
+                if (LexerEngineClass) {
+                    try {
+                        const state = update.state;
+                        // Get the line where the cursor is (or last change)
+                        // Using selection head is a good proxy for typing position
+                        const pos = state.selection.main.head;
+                        const line = state.doc.lineAt(pos);
+
+                        // Check strict syntax (Lexer throws on bad tokens like unclosed strings)
+                        new LexerEngineClass(line.text).tokenize();
+                    } catch (e) {
+                        hasError = true;
+                    }
+                }
+
+                if (hasError) {
+                    soundManager.playTypeError();
+                } else {
+                    soundManager.playType();
+                }
+            }
+        }
+    });
+
     // Define Kodme grammar using StreamLanguage (Legacy styling)
     // This mimics the Prism grammar we had but for CodeMirror
     const kodmeLanguage = StreamLanguage.define({
@@ -92,6 +145,7 @@
 
     function handleChange(e: CustomEvent<string>) {
         code = e.detail;
+        soundManager.playType();
     }
 
     export function scrollToEnd() {
@@ -109,18 +163,18 @@
         bind:value={code}
         lang={kodmeLanguage}
         theme={kodmeTheme}
-        extensions={[syntaxHighlighting(kodmeHighlightStyle)]}
+        extensions={[
+            syntaxHighlighting(kodmeHighlightStyle),
+            typingSoundExtension,
+        ]}
         styles={{
             "&": {
                 height: "100%",
                 width: "100%",
             },
         }}
-        on:ready={(e) => {
+        onready={(e) => {
             editorView = e.detail;
-        }}
-        on:change={() => {
-            soundManager.playType();
         }}
         {placeholder}
     />

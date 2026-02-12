@@ -4,6 +4,7 @@
     import Editor from "./Editor.svelte";
     import { tick } from "svelte";
     import AskModal from "./AskModal.svelte";
+    import { soundManager } from "./SoundManager";
 
     let sourceCode = 'show "Hello, Kodme!"';
     let output: string[] = [];
