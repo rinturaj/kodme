@@ -64,7 +64,7 @@ if guess < secret
     show "Hip hip hooray!"
 
 count = 3
-repeat count > 0
+repeat until count > 0
     show count
     count = count - 1
 
