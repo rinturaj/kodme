@@ -7,18 +7,18 @@ export type Position = {
 };
 
 export class Token {
-  constructor (
+  constructor(
     public value: any,
     public type: TokenType,
-    public position: Position
-  ) { }
+    public position: Position,
+  ) {}
 
   static from(
     value: any,
     type: TokenType,
     start: number,
     end: number,
-    line?: number
+    line?: number,
   ): Token {
     return new Token(value, type, { start: start, end: end, line: line });
   }

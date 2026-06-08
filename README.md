@@ -16,13 +16,13 @@
 
 ## ✨ Features
 
-| Feature | Description |
-| :--- | :--- |
-| **📝 Readable Syntax** | Code that reads like English sentences. |
-| **🎮 Interactive** | Built-in `ask` and `show` for fun interactions. |
-| **🔄 Loops Made Easy** | Simple `repeat` loops for patterns and games. |
-| **decisions Logic** | Clear `if`, `else` structures for decision making. |
-| **🎨 Playground** | A beautiful, kid-friendly web editor to start coding instantly. |
+| Feature                | Description                                                     |
+| :--------------------- | :-------------------------------------------------------------- |
+| **📝 Readable Syntax** | Code that reads like English sentences.                         |
+| **🎮 Interactive**     | Built-in `ask` and `show` for fun interactions.                 |
+| **🔄 Loops Made Easy** | Simple `repeat` loops for patterns and games.                   |
+| **decisions Logic**    | Clear `if`, `else` structures for decision making.              |
+| **🎨 Playground**      | A beautiful, kid-friendly web editor to start coding instantly. |
 
 <br>
 
@@ -32,12 +32,14 @@
 <summary><strong>Click to see installation steps</strong></summary>
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/rinturaj/kodme.git
    cd kodme
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
@@ -46,7 +48,7 @@
    ```bash
    pnpm build
    ```
-</details>
+   </details>
 
 <br>
 
@@ -59,6 +61,7 @@ You can run Kodme programs in two ways:
 <td width="50%" valign="top">
 
 ### 1. Interactive Mode 💬
+
 Start the REPL and type code directly:
 
 ```bash
@@ -69,6 +72,7 @@ pnpm start
 <td width="50%" valign="top">
 
 ### 2. Run a File 📄
+
 Execute a specific `.kodme` file:
 
 ```bash
@@ -98,6 +102,7 @@ repeat until x > 5
 ```
 
 Run it with:
+
 ```bash
 pnpm start hello.kodme
 ```
@@ -107,6 +112,7 @@ pnpm start hello.kodme
 ## 📚 Language Reference
 
 ### 📦 Variables
+
 ```kodme
 name = "Alice"
 age = 10
@@ -114,12 +120,14 @@ isCool = true
 ```
 
 ### 🗣️ Input/Output
+
 ```kodme
 name = ask "Who are you?"
 show "Welcome, " name
 ```
 
 ### 🔀 Conditionals
+
 ```kodme
 if age > 18
     show "Adult"
@@ -128,6 +136,7 @@ else
 ```
 
 ### 🔄 Loops
+
 ```kodme
 # Repeat 5 times
 repeat 5

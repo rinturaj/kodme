@@ -1,34 +1,36 @@
 :root {
   /* Playful Palette */
-  --bg-color: #FDFBF7; /* Warm off-white, like paper */
-  --surface-color: #FFFFFF;
-  --surface-hover: #F0F9FF; /* Light blue tint */
-  
-  --primary-color: #4F46E5; /* Vivid Indigo/Blue */
-  --primary-hover: #4338CA;
-  
-  --accent-color: #EC4899; /* Pink for highlights */
-  --success-color: #10B981; /* Green for success/run */
-  --warning-color: #F59E0B; /* Amber for attention */
-  
-  --text-color: #1E293B; /* Slate 800 - Soft Black */
-  --text-muted: #64748B; /* Slate 500 */
-  --text-inverse: #FFFFFF;
+  --bg-color: #fdfbf7; /* Warm off-white, like paper */
+  --surface-color: #ffffff;
+  --surface-hover: #f0f9ff; /* Light blue tint */
 
-  --border-color: #E2E8F0;
+  --primary-color: #4f46e5; /* Vivid Indigo/Blue */
+  --primary-hover: #4338ca;
+
+  --accent-color: #ec4899; /* Pink for highlights */
+  --success-color: #10b981; /* Green for success/run */
+  --warning-color: #f59e0b; /* Amber for attention */
+
+  --text-color: #1e293b; /* Slate 800 - Soft Black */
+  --text-muted: #64748b; /* Slate 500 */
+  --text-inverse: #ffffff;
+
+  --border-color: #e2e8f0;
   --border-radius-lg: 20px;
   --border-radius-md: 12px;
   --border-radius-sm: 8px;
 
   /* Typography */
-  --font-family: 'Nunito', 'Segoe UI', sans-serif; /* Rounded, friendly */
-  --code-font: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-family: "Nunito", "Segoe UI", sans-serif; /* Rounded, friendly */
+  --code-font: "JetBrains Mono", "Fira Code", monospace;
 
   /* Shadows for depth */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
   font-family: var(--font-family);
   line-height: 1.6;
@@ -42,7 +44,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -93,7 +97,9 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: var(--text-color);
   line-height: 1.1;
   font-weight: 800;
@@ -120,10 +126,10 @@ pre {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #cbd5e1;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #94a3b8;
 }

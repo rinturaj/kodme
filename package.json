@@ -11,7 +11,8 @@
     "build:cli": "pnpm --filter @kodme/cli run build",
     "dev:cli": "pnpm --filter @kodme/cli run start",
     "lint": "eslint . --ext .ts,.js,.svelte",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy": "pnpm --filter playground run deploy"
   },
   "keywords": [
     "education",

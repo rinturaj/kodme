@@ -26,9 +26,9 @@ export enum TokenType {
   ElseIf,
   End,
   Repeat, // Added back
-  Until,  // Added back
-  True,   // Added back
-  False,  // Added back
+  Until, // Added back
+  True, // Added back
+  False, // Added back
 
   //   logic types
   Assignment,
